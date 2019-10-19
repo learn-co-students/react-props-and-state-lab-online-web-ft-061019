@@ -15,6 +15,71 @@ class App extends React.Component {
     }
   }
 
+  onChangeType = (event) => {
+    const newFilterValue = event.target.value
+    this.setState({
+      ...this.state,
+      filters: {
+        type: newFilterValue
+      }
+    })
+  }
+
+  updatePetsState = (petsData) => {
+    this.setState({
+      ...this.state,
+      pets: petsData
+    })
+  }
+
+  onFindPetsClick = (event) => {
+    //can probably use a switch statement here
+    // check this.state.filters.type value then ...
+    let apiURL = ""
+    switch (this.state.filters.type) {
+      case "all":
+        apiURL = "/api/pets"
+        break;
+      case "dog":
+        apiURL = "/api/pets?type=dog"
+        break;
+      case "cat":
+        apiURL = "/api/pets?type=cat"
+        break;
+      case "micropig":
+        apiURL = "/api/pets?type=micropig"
+        break;
+      default:
+        console.log("Malformed State - unable to fetch")
+        break;
+    }
+
+    fetch(apiURL)
+      .then(resp => resp.json())
+      .then(petsData => {
+        this.updatePetsState(petsData)
+      })   
+  }
+
+  onAdoptPet = (petId) => { 
+    this.updateAdoptedStatus(petId)
+  }
+  
+  updateAdoptedStatus = (petId) => {
+    const petArr = this.state.pets 
+    const foundPet = petArr.find(pet => pet.id === petId)
+    foundPet.isAdopted = true
+
+    this.setState({
+      ...this.state,
+      pets: petArr
+    })
+  }
+
+  componentDidMount = () => {
+    this.onFindPetsClick()
+  }
+
   render() {
     return (
       <div className="ui container">
@@ -24,10 +89,10 @@ class App extends React.Component {
         <div className="ui container">
           <div className="ui grid">
             <div className="four wide column">
-              <Filters />
+              <Filters onChangeType={this.onChangeType} onFindPetsClick={this.onFindPetsClick} />
             </div>
             <div className="twelve wide column">
-              <PetBrowser />
+              <PetBrowser pets={this.state.pets} onAdoptPet={this.onAdoptPet}/>
             </div>
           </div>
         </div>
